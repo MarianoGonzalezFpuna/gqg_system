@@ -1,0 +1,211 @@
+import { createClient } from '@supabase/supabase-js'
+
+// ══════════════════════════════════════════════════════════════
+//  CONFIGURACIÓN - Reemplazar con tus datos de Supabase
+//  https://app.supabase.com → Settings → API
+// ══════════════════════════════════════════════════════════════
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://TU-PROYECTO.supabase.co'
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'TU-ANON-KEY'
+
+export const supabase = createClient(supabaseUrl, supabaseKey)
+
+
+// ══════════════════════════════════════════
+//  CLIENTES
+// ══════════════════════════════════════════
+
+export async function obtenerClientes() {
+  const { data, error } = await supabase
+    .from('clientes')
+    .select('*')
+    .eq('activo', true)
+    .order('nombre')
+  if (error) throw error
+  return data
+}
+
+export async function crearCliente(cliente) {
+  const { data, error } = await supabase
+    .from('clientes')
+    .insert([cliente])
+    .select()
+  if (error) throw error
+  return data[0]
+}
+
+export async function buscarClientes(texto) {
+  const { data, error } = await supabase
+    .from('clientes')
+    .select('*')
+    .eq('activo', true)
+    .or(`nombre.ilike.%${texto}%,ruc_ci.ilike.%${texto}%`)
+    .order('nombre')
+    .limit(10)
+  if (error) throw error
+  return data
+}
+
+
+// ══════════════════════════════════════════
+//  PRODUCTOS
+// ══════════════════════════════════════════
+
+export async function obtenerProductos() {
+  const { data, error } = await supabase
+    .from('productos')
+    .select('*')
+    .eq('activo', true)
+    .order('descripcion')
+  if (error) throw error
+  return data
+}
+
+export async function buscarProductos(texto) {
+  const { data, error } = await supabase
+    .from('productos')
+    .select('*')
+    .eq('activo', true)
+    .or(`descripcion.ilike.%${texto}%,cod_barra.ilike.%${texto}%`)
+    .order('descripcion')
+    .limit(20)
+  if (error) throw error
+  return data
+}
+
+export async function buscarProductoPorCodigo(codBarra) {
+  const { data, error } = await supabase
+    .from('productos')
+    .select('*')
+    .eq('cod_barra', codBarra)
+    .single()
+  if (error) return null
+  return data
+}
+
+
+// ══════════════════════════════════════════
+//  TIMBRADOS y DEPÓSITOS
+// ══════════════════════════════════════════
+
+export async function obtenerTimbradoActivo() {
+  const { data, error } = await supabase
+    .from('timbrados')
+    .select('*')
+    .eq('activo', true)
+    .order('id', { ascending: false })
+    .limit(1)
+    .single()
+  if (error) return null
+  return data
+}
+
+export async function obtenerDepositos() {
+  const { data, error } = await supabase
+    .from('depositos')
+    .select('*')
+    .eq('activo', true)
+    .order('nombre')
+  if (error) throw error
+  return data
+}
+
+
+// ══════════════════════════════════════════
+//  FACTURAS
+// ══════════════════════════════════════════
+
+/**
+ * Crear factura completa: cabecera + detalles.
+ * El trigger fn_generar_cuotas() crea las cuotas automáticamente.
+ * El trigger fn_recalcular_totales_factura() actualiza los totales.
+ */
+export async function crearFacturaCompleta(cabecera, detalles) {
+  // 1. Insertar cabecera
+  const { data: factura, error: errFact } = await supabase
+    .from('facturas')
+    .insert([cabecera])
+    .select()
+  if (errFact) throw errFact
+
+  const facturaId = factura[0].id
+
+  // 2. Insertar detalles (el trigger recalcula totales)
+  const detallesConId = detalles.map((d, i) => ({
+    factura_id:   facturaId,
+    item_nro:     i + 1,
+    producto_id:  d.producto_id || null,
+    cod_barra:    d.cod_barra,
+    descripcion:  d.descripcion,
+    precio:       d.precio,
+    iva:          d.iva,
+    base:         d.base,
+    impuesto:     d.impuesto,
+    descuento_pct: d.descuento_pct || 0,
+    descuento:    d.descuento || 0,
+    cantidad:     d.cantidad,
+    total:        d.total,
+  }))
+
+  const { error: errDet } = await supabase
+    .from('factura_detalles')
+    .insert(detallesConId)
+  if (errDet) throw errDet
+
+  return factura[0]
+}
+
+/**
+ * Obtener facturas con detalles y cuotas.
+ */
+export async function obtenerFacturas() {
+  const { data, error } = await supabase
+    .from('facturas')
+    .select(`
+      *,
+      cliente:clientes(*),
+      timbrado:timbrados(*),
+      deposito:depositos(*),
+      factura_detalles(*),
+      cuentas(*)
+    `)
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return data
+}
+
+
+// ══════════════════════════════════════════
+//  CUENTAS (cuotas)
+// ══════════════════════════════════════════
+
+export async function obtenerCuotas(facturaId) {
+  const { data, error } = await supabase
+    .from('cuentas')
+    .select('*')
+    .eq('factura_id', facturaId)
+    .order('vence', { ascending: true })
+  if (error) throw error
+  return data
+}
+
+export async function registrarPago(cuentaId, monto) {
+  const { data, error } = await supabase
+    .rpc('registrar_pago', { p_cuenta_id: cuentaId, p_monto: monto })
+  if (error) throw error
+  return data
+}
+
+
+// ══════════════════════════════════════════
+//  PLAZOS
+// ══════════════════════════════════════════
+
+export async function obtenerPlazos() {
+  const { data, error } = await supabase
+    .from('plazos')
+    .select('*, plazo_detalles(*)')
+    .order('id')
+  if (error) throw error
+  return data
+}
