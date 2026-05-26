@@ -111,6 +111,16 @@ export default function NuevaFactura() {
     setItems(prev => [...prev, { cod: '', desc: '', precio: 0, iva: 10, desc_pct: 0, cantidad: 1 }])
   }
 
+  // Autocompleta todos los campos cuando se encuentra el producto por código
+  const autocompleteItem = (idx, prod) => {
+    setItems(prev => prev.map((it, i) =>
+      i === idx
+        ? { ...it, cod: prod.cod, desc: prod.desc, precio: prod.precio, iva: prod.iva, producto_id: prod.producto_id, _codAnterior: prod.cod }
+        : it
+    ))
+    setShowCuotas(false)
+  }
+
   const addProductFromDB = (prod) => {
     setItems(prev => [...prev, {
       cod: prod.cod_barra || '',
@@ -260,6 +270,7 @@ export default function NuevaFactura() {
         onUpdate={updateItem}
         onRemove={removeItem}
         onAdd={addItem}
+        onAutocomplete={autocompleteItem}
         totals={totals}
       />
 
