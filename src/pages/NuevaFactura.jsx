@@ -12,6 +12,7 @@ import {
   generarCuotas,
   generarEtiquetaPlazo,
 } from '../lib/utils'
+import { crearFacturaCompleta } from '../lib/supabase'
 import { guardarFacturaLocal } from '../lib/storage'
 
 export default function NuevaFactura() {
@@ -108,21 +109,60 @@ export default function NuevaFactura() {
     toast.success('Vista previa generada')
   }, [totals.total, modalidad, cantCuotas, tipoVenc, diasIrreg, header.fechaFactura])
 
-  const guardar = () => {
+  const guardar = async () => {
     if (!showCuotas) return
 
-    guardarFacturaLocal({
-      id: Date.now(),
-      header: { ...header },
-      items: [...computedItems],
-      totals: { ...totals },
-      cuotas: cuotasPreview.map(c => ({ ...c, vence: c.vence.toISOString() })),
-      plazoLabel,
-      modalidad,
-      cliente: { ...cliente },
-    })
+    try {
+      // Intentar guardar en Supabase
+      const cabecera = {
+        numero:         `${header.factNum1}-${header.factNum2}-${header.factNum3}`,
+        tipo:           'venta',
+        cliente_id:     header.clienteId,
+        timbrado_id:    1,
+        deposito_id:    1,
+        fecha:          header.fechaFactura,
+        fecha_proceso:  header.fechaProceso,
+        moneda:         header.moneda,
+        total_neto:     totals.neto,
+        total_impuesto: totals.impuesto,
+        total_excento:  totals.excento,
+        total:          totals.total,
+        modalidad:      modalidad,
+        plazo_id:       modalidad === 'CO' ? 1 : null,  // 1 = contado en datos iniciales
+      }
 
-    toast.success('Factura guardada correctamente')
+      const detalles = computedItems.map(it => ({
+        cod_barra:     it.cod,
+        descripcion:   it.desc,
+        precio:        it.precio,
+        iva:           it.iva,
+        base:          it.base,
+        impuesto:      it.impuesto,
+        descuento_pct: it.desc_pct,
+        descuento:     it.descMonto || 0,
+        cantidad:      it.cantidad,
+        total:         it.total,
+      }))
+
+      await crearFacturaCompleta(cabecera, detalles)
+      toast.success('Factura guardada en Supabase')
+    } catch (err) {
+      console.warn('Supabase no disponible, guardando local:', err.message)
+
+      // Fallback: guardar en localStorage
+      guardarFacturaLocal({
+        id: Date.now(),
+        header: { ...header },
+        items: [...computedItems],
+        totals: { ...totals },
+        cuotas: cuotasPreview.map(c => ({ ...c, vence: c.vence.toISOString() })),
+        plazoLabel,
+        modalidad,
+        cliente: { ...cliente },
+      })
+      toast.success('Factura guardada (modo local)')
+    }
+
     setShowCuotas(false)
     setCuotasPreview([])
     navigate('/historial')

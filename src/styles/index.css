@@ -4,23 +4,18 @@
 
 body {
   margin: 0;
-  background: #0b1120;
-  color: #d8e0ec;
+  background: #f0f2f5;
+  color: #333;
   font-family: 'DM Sans', system-ui, sans-serif;
 }
 
 ::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: #0b1120; }
-::-webkit-scrollbar-thumb { background: #1e2d44; border-radius: 3px; }
+::-webkit-scrollbar-track { background: #e8e8e8; }
+::-webkit-scrollbar-thumb { background: #bbb; border-radius: 3px; }
 
 input, select, textarea { font-family: 'DM Sans', system-ui, sans-serif; }
-input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.7); }
-input[type="datetime-local"]::-webkit-calendar-picker-indicator { filter: invert(0.7); }
+input[type="date"]::-webkit-calendar-picker-indicator { filter: none; }
 
-/* Remove number input spinners */
 input[type="number"]::-webkit-inner-spin-button,
-input[type="number"]::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
+input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 input[type="number"] { -moz-appearance: textfield; }

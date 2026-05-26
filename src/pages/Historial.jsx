@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { obtenerFacturasLocal, limpiarFacturasLocal } from '../lib/storage'
+import { obtenerFacturas as obtenerFacturasDB } from '../lib/supabase'
 import { formatearFecha, fmtNum } from '../lib/utils'
 
 function Badge({ color, children }) {
@@ -12,9 +13,58 @@ function Badge({ color, children }) {
 
 export default function Historial() {
   const [facturas, setFacturas] = useState([])
+  const [fuente, setFuente] = useState('')
 
   useEffect(() => {
-    setFacturas(obtenerFacturasLocal())
+    // Intentar Supabase, si falla usar localStorage
+    obtenerFacturasDB()
+      .then(data => {
+        if (data && data.length > 0) {
+          // Transformar datos de Supabase al formato del componente
+          const mapped = data.map(f => ({
+            id: f.id,
+            header: {
+              factNum1: f.numero?.split('-')[0] || '001',
+              factNum2: f.numero?.split('-')[1] || '001',
+              factNum3: f.numero?.split('-')[2] || '0000000',
+              fechaFactura: f.fecha,
+            },
+            items: (f.factura_detalles || []).map(d => ({
+              desc: d.descripcion,
+              precio: d.precio,
+              iva: d.iva,
+              cantidad: d.cantidad,
+              total: d.total,
+            })),
+            totals: {
+              neto: f.total_neto,
+              impuesto: f.total_impuesto,
+              excento: f.total_excento,
+              total: f.total,
+            },
+            cuotas: (f.cuentas || []).map(c => ({
+              numero: `"${c.cuota}"`,
+              importe: c.importe,
+              vence: c.vence,
+              cobrado: c.cobrado,
+            })),
+            plazoLabel: f.modalidad === 'CO' ? 'CO-Contado' : 'Crédito',
+            modalidad: f.modalidad,
+            cliente: {
+              nombre: f.cliente?.nombre || 'Cliente',
+            },
+          }))
+          setFacturas(mapped)
+          setFuente('supabase')
+        } else {
+          setFacturas(obtenerFacturasLocal())
+          setFuente('local')
+        }
+      })
+      .catch(() => {
+        setFacturas(obtenerFacturasLocal())
+        setFuente('local')
+      })
   }, [])
 
   const limpiar = () => {

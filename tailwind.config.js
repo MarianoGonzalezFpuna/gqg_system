@@ -4,16 +4,21 @@ export default {
   theme: {
     extend: {
       colors: {
+        brand: {
+          DEFAULT: '#3bbdc4',
+          dark: '#2ea5ab',
+          light: '#e6f8f9',
+        },
         gqg: {
-          bg: '#0b1120',
-          card: '#131d2f',
-          border: '#1e2d44',
-          gold: '#f0c756',
-          'gold-dark': '#c9a22e',
-          teal: '#34d5b0',
-          red: '#ff5c5c',
-          muted: '#5a7090',
-          text: '#d8e0ec',
+          bg: '#f5f6fa',
+          card: '#ffffff',
+          border: '#e2e5eb',
+          gold: '#3bbdc4',
+          'gold-dark': '#2ea5ab',
+          teal: '#16a34a',
+          red: '#dc2626',
+          muted: '#6b7280',
+          text: '#1f2937',
         }
       },
       fontFamily: {

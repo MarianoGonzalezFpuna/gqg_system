@@ -410,6 +410,9 @@ INSERT INTO plazo_detalles (plazo_id, cuota, dias) VALUES
 
 -- ════════════════════════════════════════════════════════════
 --  ROW LEVEL SECURITY
+--  Nota: se permite acceso anon para desarrollo sin login.
+--  En producción, cambiar 'anon' por 'authenticated' y
+--  agregar sistema de autenticación.
 -- ════════════════════════════════════════════════════════════
 
 ALTER TABLE clientes ENABLE ROW LEVEL SECURITY;
@@ -422,13 +425,13 @@ ALTER TABLE facturas ENABLE ROW LEVEL SECURITY;
 ALTER TABLE factura_detalles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE cuentas ENABLE ROW LEVEL SECURITY;
 
--- Políticas básicas (ajustar según roles de tu app)
-CREATE POLICY "auth_clientes"        ON clientes FOR ALL TO authenticated USING (true);
-CREATE POLICY "auth_productos"       ON productos FOR ALL TO authenticated USING (true);
-CREATE POLICY "auth_timbrados"       ON timbrados FOR SELECT TO authenticated USING (true);
-CREATE POLICY "auth_depositos"       ON depositos FOR SELECT TO authenticated USING (true);
-CREATE POLICY "auth_plazos"          ON plazos FOR SELECT TO authenticated USING (true);
-CREATE POLICY "auth_plazo_detalles"  ON plazo_detalles FOR SELECT TO authenticated USING (true);
-CREATE POLICY "auth_facturas"        ON facturas FOR ALL TO authenticated USING (true);
-CREATE POLICY "auth_factura_det"     ON factura_detalles FOR ALL TO authenticated USING (true);
-CREATE POLICY "auth_cuentas"         ON cuentas FOR ALL TO authenticated USING (true);
+-- Acceso público (anon) para desarrollo
+CREATE POLICY "anon_clientes"        ON clientes FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "anon_productos"       ON productos FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "anon_timbrados"       ON timbrados FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "anon_depositos"       ON depositos FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "anon_plazos"          ON plazos FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "anon_plazo_detalles"  ON plazo_detalles FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "anon_facturas"        ON facturas FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "anon_factura_det"     ON factura_detalles FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "anon_cuentas"         ON cuentas FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
