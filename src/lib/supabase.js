@@ -46,6 +46,24 @@ export async function buscarClientes(texto) {
   return data
 }
 
+export async function actualizarCliente(id, cliente) {
+  const { data, error } = await supabase
+    .from('clientes')
+    .update(cliente)
+    .eq('id', id)
+    .select()
+  if (error) throw error
+  return data[0]
+}
+
+export async function eliminarCliente(id) {
+  const { error } = await supabase
+    .from('clientes')
+    .update({ activo: false })
+    .eq('id', id)
+  if (error) throw error
+}
+
 
 // ══════════════════════════════════════════
 //  PRODUCTOS
