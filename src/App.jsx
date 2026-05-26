@@ -5,7 +5,7 @@ import Login from './pages/Login'
 import Clientes from './pages/Clientes'
 import NuevaFactura from './pages/NuevaFactura'
 import Historial from './pages/Historial'
-import Catalogo from './pages/Catalogo'
+import Productos from './pages/Productos'
 import Plazos from './pages/Plazos'
 
 function Inicio() {
@@ -62,7 +62,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Inicio />} />
             <Route path="/clientes" element={<Clientes />} />
-            <Route path="/catalogo" element={<Catalogo />} />
+            <Route path="/catalogo" element={<Productos />} />
             <Route path="/facturas" element={<NuevaFactura />} />
             <Route path="/historial" element={<Historial />} />
             <Route path="/plazos" element={<Plazos />} />
