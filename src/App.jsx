@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import Sidebar from './components/Sidebar'
 import Login from './pages/Login'
+import Clientes from './pages/Clientes'
 import NuevaFactura from './pages/NuevaFactura'
 import Historial from './pages/Historial'
 import Catalogo from './pages/Catalogo'
@@ -16,15 +17,6 @@ function Inicio() {
         </svg>
       </div>
       <h1 className="text-3xl font-bold text-gray-800">GQG System</h1>
-    </div>
-  )
-}
-
-function Clientes() {
-  return (
-    <div>
-      <h2 className="text-xl font-bold text-gray-800 mb-4">Clientes</h2>
-      <p className="text-gray-500 text-sm">Módulo de clientes — conectado a Supabase tabla "clientes".</p>
     </div>
   )
 }
