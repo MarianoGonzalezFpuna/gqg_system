@@ -1,28 +1,27 @@
-import { CLIENTES, DEPOSITOS, TIPOS_DOCUMENTO, MONEDAS } from '../lib/constants'
+import { DEPOSITOS, TIPOS_DOCUMENTO, MONEDAS } from '../lib/constants'
 import { formatearFecha, fmtNum } from '../lib/utils'
 
 function Field({ label, children }) {
   return (
-    <label className="block text-[11px] text-gqg-muted font-semibold tracking-wide">
+    <label className="block text-[11px] text-gray-500 font-semibold tracking-wide">
       {label}
       <div className="mt-1">{children}</div>
     </label>
   )
 }
 
-const INPUT = "w-full px-2.5 py-[7px] bg-gqg-bg border border-gqg-border rounded text-gqg-text text-[13px] font-sans"
-const INPUT_RO = INPUT + " opacity-60"
+const INPUT = "w-full px-2.5 py-[7px] bg-white border border-gray-200 rounded text-gray-800 text-[13px] font-sans"
+const INPUT_RO = INPUT + " bg-gray-50 text-gray-500"
 
-export default function CabeceraFactura({ header, setHeader, totals, onModalidadChange }) {
-  const cliente = CLIENTES.find(c => c.id === header.clienteId) || CLIENTES[0]
+export default function CabeceraFactura({ header, setHeader, totals, onModalidadChange, clientes = [] }) {
+  const cliente = clientes.find(c => c.id === header.clienteId) || clientes[0] || {}
 
   const update = (key, val) => setHeader(prev => ({ ...prev, [key]: val }))
 
   return (
-    <div className="bg-gqg-card rounded-xl border border-gqg-border p-4 mb-3.5">
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 mb-3.5">
       {/* Row 1: Registro+Fechas | Timbrado | Totales */}
       <div className="grid grid-cols-[2fr_1.5fr_1fr] gap-3.5 mb-3.5">
-        {/* Left */}
         <div className="grid grid-cols-[auto_1fr_1fr] gap-2 items-end">
           <Field label="Nº Registro">
             <input value={header.nroRegistro} readOnly className={INPUT_RO + " w-14 text-center"} />
@@ -37,60 +36,57 @@ export default function CabeceraFactura({ header, setHeader, totals, onModalidad
           </Field>
         </div>
 
-        {/* Center: Timbrado */}
-        <div className="bg-gqg-bg rounded-md p-2.5 border border-gqg-border">
+        <div className="bg-gray-50 rounded-md p-2.5 border border-gray-200">
           <div className="grid grid-cols-[auto_1fr] gap-x-2.5 gap-y-1 text-xs">
-            <span className="text-gqg-muted text-[11px]">Timbrado Nº:</span>
-            <span className="font-semibold">{header.timbrado}</span>
-            <span className="text-gqg-muted text-[11px]">Inicio Vigencia:</span>
-            <span>{formatearFecha(header.vigenciaDesde)}</span>
-            <span className="text-gqg-muted text-[11px]">Fin Vigencia:</span>
-            <span>{formatearFecha(header.vigenciaHasta)}</span>
-            <span className="text-gqg-muted text-[11px]">RUC:</span>
-            <span>{header.rucEmpresa}</span>
+            <span className="text-gray-400 text-[11px]">Timbrado Nº:</span>
+            <span className="font-semibold text-gray-700">{header.timbrado}</span>
+            <span className="text-gray-400 text-[11px]">Inicio Vigencia:</span>
+            <span className="text-gray-600">{formatearFecha(header.vigenciaDesde)}</span>
+            <span className="text-gray-400 text-[11px]">Fin Vigencia:</span>
+            <span className="text-gray-600">{formatearFecha(header.vigenciaHasta)}</span>
+            <span className="text-gray-400 text-[11px]">RUC:</span>
+            <span className="text-gray-600">{header.rucEmpresa}</span>
           </div>
         </div>
 
-        {/* Right: Totales */}
-        <div className="bg-gqg-bg rounded-md p-2.5 border border-gqg-border">
+        <div className="bg-gray-50 rounded-md p-2.5 border border-gray-200">
           <div className="grid grid-cols-[auto_1fr] gap-x-2 gap-y-1 text-xs">
-            <span className="text-gqg-muted text-[11px]">Total Neto:</span>
-            <span className="text-right font-mono text-gqg-teal">{fmtNum(totals.neto)}</span>
-            <span className="text-gqg-muted text-[11px]">Total Impuesto:</span>
-            <span className="text-right font-mono text-gqg-gold">{fmtNum(totals.impuesto)}</span>
-            <span className="text-gqg-muted text-[11px]">Total Excento:</span>
-            <span className="text-right font-mono">{fmtNum(totals.excento)}</span>
-            <span className="text-white text-xs font-bold">Total Factura:</span>
-            <span className="text-right font-mono text-white font-bold text-sm">{fmtNum(totals.total)}</span>
+            <span className="text-gray-400 text-[11px]">Total Neto:</span>
+            <span className="text-right font-mono text-green-700">{fmtNum(totals.neto)}</span>
+            <span className="text-gray-400 text-[11px]">Total Impuesto:</span>
+            <span className="text-right font-mono text-brand">{fmtNum(totals.impuesto)}</span>
+            <span className="text-gray-400 text-[11px]">Total Excento:</span>
+            <span className="text-right font-mono text-gray-600">{fmtNum(totals.excento)}</span>
+            <span className="text-gray-800 text-xs font-bold">Total Factura:</span>
+            <span className="text-right font-mono text-gray-900 font-bold text-sm">{fmtNum(totals.total)}</span>
           </div>
         </div>
       </div>
 
       {/* Row 2: Cliente | Depósito+Tipo | Factura Nro */}
       <div className="grid grid-cols-[2fr_1.5fr_1fr] gap-3.5">
-        {/* Cliente */}
         <div>
           <div className="grid grid-cols-2 gap-2 mb-1.5">
             <Field label="Cliente">
               <select value={header.clienteId} onChange={e => update('clienteId', +e.target.value)} className={INPUT}>
-                {CLIENTES.map(c => <option key={c.id} value={c.id}>{c.id} — {c.nombre}</option>)}
+                <option value="">— Seleccionar —</option>
+                {clientes.map(c => <option key={c.id} value={c.id}>{c.id} — {c.nombre}</option>)}
               </select>
             </Field>
             <Field label="RUC / CI">
-              <input value={cliente.ruc} readOnly className={INPUT_RO} />
+              <input value={cliente.ruc_ci || ''} readOnly className={INPUT_RO} />
             </Field>
           </div>
           <div className="grid grid-cols-2 gap-2">
             <Field label="Dirección">
-              <input value={cliente.direccion} readOnly className={INPUT_RO} />
+              <input value={cliente.direccion || ''} readOnly className={INPUT_RO} />
             </Field>
             <Field label="Teléfono">
-              <input value={cliente.telefono} readOnly className={INPUT_RO} />
+              <input value={cliente.telefono || ''} readOnly className={INPUT_RO} />
             </Field>
           </div>
         </div>
 
-        {/* Depósito + Tipo Doc + Moneda */}
         <div>
           <div className="grid grid-cols-2 gap-2 mb-1.5">
             <Field label="Depósito">
@@ -114,17 +110,12 @@ export default function CabeceraFactura({ header, setHeader, totals, onModalidad
           </Field>
         </div>
 
-        {/* Factura Nro */}
         <div className="text-center">
-          <p className="text-[11px] text-gqg-muted font-semibold mb-1.5 tracking-wide">FACTURA Nº</p>
+          <p className="text-[11px] text-gray-500 font-semibold mb-1.5 tracking-wide">FACTURA Nº</p>
           <div className="flex gap-1 justify-center">
             {['factNum1', 'factNum2', 'factNum3'].map((key, i) => (
-              <input
-                key={key}
-                value={header[key]}
-                onChange={e => update(key, e.target.value)}
-                className={`${INPUT} text-center font-bold text-sm ${i === 2 ? 'w-[90px]' : 'w-[50px]'}`}
-              />
+              <input key={key} value={header[key]} onChange={e => update(key, e.target.value)}
+                className={`${INPUT} text-center font-bold text-sm ${i === 2 ? 'w-[90px]' : 'w-[50px]'}`} />
             ))}
           </div>
         </div>
