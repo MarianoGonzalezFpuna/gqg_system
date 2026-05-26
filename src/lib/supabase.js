@@ -209,3 +209,62 @@ export async function obtenerPlazos() {
   if (error) throw error
   return data
 }
+
+export async function crearPlazo(plazo, detalles = []) {
+  const { data, error } = await supabase
+    .from('plazos')
+    .insert([plazo])
+    .select()
+  if (error) throw error
+
+  if (detalles.length > 0) {
+    const detallesConId = detalles.map(d => ({
+      ...d,
+      plazo_id: data[0].id,
+    }))
+    const { error: detErr } = await supabase
+      .from('plazo_detalles')
+      .insert(detallesConId)
+    if (detErr) throw detErr
+  }
+
+  return data[0]
+}
+
+export async function actualizarPlazo(id, plazo, detalles = []) {
+  const { data, error } = await supabase
+    .from('plazos')
+    .update(plazo)
+    .eq('id', id)
+    .select()
+  if (error) throw error
+
+  // Borrar detalles viejos y reinsertar
+  const { error: delErr } = await supabase
+    .from('plazo_detalles')
+    .delete()
+    .eq('plazo_id', id)
+  if (delErr) throw delErr
+
+  if (detalles.length > 0) {
+    const detallesConId = detalles.map(d => ({
+      plazo_id: id,
+      cuota: d.cuota,
+      dias: d.dias,
+    }))
+    const { error: detErr } = await supabase
+      .from('plazo_detalles')
+      .insert(detallesConId)
+    if (detErr) throw detErr
+  }
+
+  return data[0]
+}
+
+export async function eliminarPlazo(id) {
+  const { error } = await supabase
+    .from('plazos')
+    .delete()
+    .eq('id', id)
+  if (error) throw error
+}
