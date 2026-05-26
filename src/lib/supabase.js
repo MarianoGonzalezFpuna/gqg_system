@@ -101,6 +101,33 @@ export async function buscarProductoPorCodigo(codBarra) {
   return data
 }
 
+export async function crearProducto(producto) {
+  const { data, error } = await supabase
+    .from('productos')
+    .insert([producto])
+    .select()
+  if (error) throw error
+  return data[0]
+}
+
+export async function actualizarProducto(id, producto) {
+  const { data, error } = await supabase
+    .from('productos')
+    .update(producto)
+    .eq('id', id)
+    .select()
+  if (error) throw error
+  return data[0]
+}
+
+export async function eliminarProducto(id) {
+  const { error } = await supabase
+    .from('productos')
+    .update({ activo: false })
+    .eq('id', id)
+  if (error) throw error
+}
+
 
 // ══════════════════════════════════════════
 //  TIMBRADOS y DEPÓSITOS
